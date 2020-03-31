@@ -1,0 +1,40 @@
+R #runs R
+library(WGCNA)  #Loads the WGCNA Library
+options(stringsAsFactors = FALSE) # a logical that indicates whether strings in a data frame should be treated as factor variables or as just plain strings
+rnadata <- read.table(“combined.tab”, sep="\t",header=TRUE)#reads in the data as a tab delimited file
+#Reads in file
+
+
+datExpr0 = as.data.frame(t(rnadata[, -c(1,35)])); #Creates a data frame with appropriate columns selected
+names(datExpr0) = rnadata$x; #sets the column names for the new data frame from column x from upper lip 
+ rownames(datExpr0) = names(rnadata[-c(1,35)]); #sets row names as the nodes 
+> gsg = goodSamplesGenes(datExpr0, verbose = 3);
+ Flagging genes and samples with too many missing values...
+  ..step 1
+> gsg$allOK
+#changes data file into a data frame with necessary information
+
+
+
+lnames = load("upperlip-01-dataInput.RData");
+
+powers = c(c(1:10), seq(from = 12, to=20, by=2)) # Call the network topology analysis function 
+sft = pickSoftThreshold(datExpr0, powerVector = powers, verbose = 5)
+
+# running topology analysis
+
+
+datExpr0[] <- lapply(datExpr0, as.numeric) #changes data frame to numeric
+net = blockwiseModules(datExpr0, power = 6, TOMType = "unsigned", minModuleSize = 30, reassignThreshold = 0, mergeCutHeight = 0.25, numericLabels = TRUE, pamRespectsDendro = FALSE, saveTOMs = TRUE, saveTOMFileBase = “upperlipTOM", verbose = 3)
+#creates network
+
+
+#plots
+sizeGrWindow(12, 9) # Convert labels to colors for plotting mergedColors = labels2colors(net$colors)
+plotDendroAndColors(net$dendrograms[[3]], mergedColors[net$blockGenes[[3]]], "Module colors", dendroLabels = FALSE, hang = 0.03, addGuide = TRUE, guideHang = 0.05)
+moduleLabels = net$colors moduleColors = labels2colors(net$colors) MEs = net$MEs; geneTree = net$dendrograms[[1]]; 
+save(MEs, moduleLabels, moduleColors, geneTree, file = “rnadata-02-networkConstruction-auto.RData")
+
+moduleLabels[moduleLabels == 1]
+turquoisefile = moduleLabels[moduleLabels == 1]
+write.csv(turquoisefile, file = "turquoisefile.csv")
